@@ -1,0 +1,42 @@
+{
+  "name": "antd-elements",
+  "version": "1.0.1",
+  "description": "A React component library built with Ant Design and TypeScript.",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "react",
+    "antd",
+    "typescript",
+    "component-library"
+  ],
+  "author": "Muhammad Wasil Islam <wasilislam456@gmail.com>",
+  "license": "ISC",
+  "peerDependencies": {
+    "antd": "^5.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.1",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-typescript": "^12.1.1",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "rollup": "^4.27.3",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "tslib": "^2.8.1"
+  }
+}
