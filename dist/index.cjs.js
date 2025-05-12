@@ -1621,7 +1621,7 @@ var getInitialField = function () { return ({
     minValue: 0, // For number
     maxValue: 100, // For number
 }); };
-var FormGenerator = function (_a) {
+var AntdElementsForm = function (_a) {
     var _b = _a.value, value = _b === void 0 ? [] : _b, onChange = _a.onChange, _c = _a.isPreview, isPreview = _c === void 0 ? false : _c, onSubmitPreview = _a.onSubmitPreview;
     var _d = React.useState(value), fields = _d[0], setFields = _d[1];
     var _e = React.useState(false), isModalVisible = _e[0], setIsModalVisible = _e[1];
@@ -1629,6 +1629,9 @@ var FormGenerator = function (_a) {
     var _g = React.useState(false), isEditing = _g[0], setIsEditing = _g[1];
     var form = antd.Form.useForm()[0];
     var previewForm = antd.Form.useForm()[0];
+    var _h = React.useState(false), localPreview = _h[0], setLocalPreview = _h[1];
+    // Display either the passed isPreview prop or local preview state
+    var showPreview = isPreview || localPreview;
     // Update fields and trigger onChange
     var updateFields = function (newFields) {
         setFields(newFields);
@@ -1719,26 +1722,29 @@ var FormGenerator = function (_a) {
             name: field.id,
             required: required,
             tooltip: instructions || undefined,
+            style: { width: '100%' },
         };
         switch (type) {
             case FIELD_TYPES.INPUT:
                 return (React.createElement(antd.Form.Item, tslib.__assign({}, formItemProps),
-                    React.createElement(antd.Input, { placeholder: placeholder })));
+                    React.createElement(antd.Input, { placeholder: placeholder, style: { width: '100%' } })));
             case FIELD_TYPES.TEXTAREA:
                 return (React.createElement(antd.Form.Item, tslib.__assign({}, formItemProps),
-                    React.createElement(TextArea, { placeholder: placeholder, rows: 4 })));
+                    React.createElement(TextArea, { placeholder: placeholder, rows: 4, style: { width: '100%' } })));
             case FIELD_TYPES.CHECKBOX:
                 return (React.createElement(antd.Form.Item, tslib.__assign({}, formItemProps),
-                    React.createElement(antd.Checkbox.Group, { options: options })));
+                    React.createElement(antd.Checkbox.Group, { options: options, style: { width: '100%' } })));
             case FIELD_TYPES.RADIO:
                 return (React.createElement(antd.Form.Item, tslib.__assign({}, formItemProps),
-                    React.createElement(antd.Radio.Group, null, options.map(function (option, index) { return (React.createElement(antd.Radio, { key: index, value: option }, option)); }))));
+                    React.createElement(antd.Radio.Group, { style: { width: '100%' } }, options.map(function (option, index) { return (React.createElement(antd.Radio, { key: index, value: option }, option)); }))));
             case FIELD_TYPES.NUMBER:
                 return (React.createElement(antd.Form.Item, tslib.__assign({}, formItemProps),
-                    React.createElement(antd.InputNumber, { min: minValue, max: maxValue, placeholder: placeholder })));
+                    React.createElement(antd.InputNumber, { min: minValue, max: maxValue, placeholder: placeholder, style: { width: '100%' } })));
             case FIELD_TYPES.SELECT:
                 return (React.createElement(antd.Form.Item, tslib.__assign({}, formItemProps),
-                    React.createElement(antd.Select, { placeholder: placeholder }, options.map(function (option, index) { return (React.createElement(Option, { key: index, value: option }, option)); }))));
+                    React.createElement(antd.Select, { placeholder: placeholder, showSearch: true, optionFilterProp: "children", filterOption: function (input, option) {
+                            return (option === null || option === void 0 ? void 0 : option.children).toLowerCase().indexOf(input.toLowerCase()) !== -1;
+                        }, style: { width: '100%' } }, options.map(function (option, index) { return (React.createElement(Option, { key: index, value: option }, option)); }))));
             default:
                 return null;
         }
@@ -1787,24 +1793,23 @@ var FormGenerator = function (_a) {
                     React.createElement(antd.Input, { value: option, onChange: function (e) { return handleOptionTextChange(index, e.target.value); }, style: { marginRight: '8px' } }),
                     React.createElement(antd.Button, { danger: true, icon: React.createElement(RefIcon$3, null), onClick: function () { return handleRemoveOption(index); }, disabled: currentField.options.length <= 1 }))); })))))); };
     // If in preview mode, render the form with the configured fields
-    if (isPreview) {
-        return (React.createElement(antd.Card, { title: "Form Preview" },
-            React.createElement(antd.Form, { form: previewForm, layout: "vertical", onFinish: handlePreviewSubmit },
-                fields.map(function (field) { return (React.createElement("div", { key: field.id }, renderPreviewField(field))); }),
+    if (showPreview) {
+        return (React.createElement(antd.Card, { title: "Form Preview", extra: localPreview ? (React.createElement(antd.Button, { onClick: function () { return setLocalPreview(false); } }, "Back to Editor")) : null },
+            React.createElement(antd.Form, { form: previewForm, layout: "vertical", onFinish: handlePreviewSubmit, style: { width: '100%' } }, fields.length > 0 ? (React.createElement(React.Fragment, null,
+                fields.map(function (field) { return (React.createElement("div", { key: field.id, style: { width: '100%' } }, renderPreviewField(field))); }),
                 React.createElement(antd.Form.Item, null,
-                    React.createElement(antd.Button, { type: "primary", htmlType: "submit" }, "Submit")))));
+                    React.createElement(antd.Button, { type: "primary", htmlType: "submit" }, "Submit")))) : (React.createElement("div", { style: { textAlign: 'center', padding: '20px', background: '#f5f5f5', borderRadius: '4px' } }, "No fields have been added to this form yet.")))));
     }
     // Otherwise, render the form builder
     return (React.createElement("div", null,
-        React.createElement(antd.Button, { type: "primary", icon: React.createElement(RefIcon, null), onClick: function () {
-                setIsModalVisible(true);
-                setIsEditing(false);
-                form.resetFields();
-                setCurrentField(getInitialField());
-            }, style: { marginBottom: 16 } }, "Add Form Field"),
-        React.createElement(antd.Button, { icon: React.createElement(RefIcon$1, null), style: { marginLeft: 8, marginBottom: 16 }, onClick: function () {
-                // You can implement a preview toggle here if needed
-            } }, "Preview Form"),
+        React.createElement(antd.Space, { style: { marginBottom: 16 } },
+            React.createElement(antd.Button, { type: "primary", icon: React.createElement(RefIcon, null), onClick: function () {
+                    setIsModalVisible(true);
+                    setIsEditing(false);
+                    form.resetFields();
+                    setCurrentField(getInitialField());
+                } }, "Add Form Field"),
+            React.createElement(antd.Button, { icon: React.createElement(RefIcon$1, null), onClick: function () { return setLocalPreview(true); }, disabled: fields.length === 0 }, "Preview Form")),
         fields.length > 0 ? (React.createElement("div", null, fields.map(function (field, index) { return (React.createElement(antd.Card, { key: field.id, style: { marginBottom: 16 }, title: "".concat(index + 1, ". ").concat(field.label, " (").concat(field.type, ")"), extra: React.createElement(antd.Space, null,
                 React.createElement(antd.Tooltip, { title: "Move Up" },
                     React.createElement(antd.Button, { icon: React.createElement(RefIcon$4, null), disabled: index === 0, onClick: function () { return handleMoveUp(index); } })),
@@ -1845,6 +1850,6 @@ var FormGenerator = function (_a) {
         renderFieldModal()));
 };
 
-exports.Form = FormGenerator;
+exports.AntdElementsForm = AntdElementsForm;
 exports.TextAreaWithSaveCancel = TextAreaWithSaveCancel;
 //# sourceMappingURL=index.cjs.js.map

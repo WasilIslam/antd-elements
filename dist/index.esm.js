@@ -1601,7 +1601,7 @@ var getInitialField = function () { return ({
     minValue: 0, // For number
     maxValue: 100, // For number
 }); };
-var FormGenerator = function (_a) {
+var AntdElementsForm = function (_a) {
     var _b = _a.value, value = _b === void 0 ? [] : _b, onChange = _a.onChange, _c = _a.isPreview, isPreview = _c === void 0 ? false : _c, onSubmitPreview = _a.onSubmitPreview;
     var _d = useState(value), fields = _d[0], setFields = _d[1];
     var _e = useState(false), isModalVisible = _e[0], setIsModalVisible = _e[1];
@@ -1609,6 +1609,9 @@ var FormGenerator = function (_a) {
     var _g = useState(false), isEditing = _g[0], setIsEditing = _g[1];
     var form = Form.useForm()[0];
     var previewForm = Form.useForm()[0];
+    var _h = useState(false), localPreview = _h[0], setLocalPreview = _h[1];
+    // Display either the passed isPreview prop or local preview state
+    var showPreview = isPreview || localPreview;
     // Update fields and trigger onChange
     var updateFields = function (newFields) {
         setFields(newFields);
@@ -1699,26 +1702,29 @@ var FormGenerator = function (_a) {
             name: field.id,
             required: required,
             tooltip: instructions || undefined,
+            style: { width: '100%' },
         };
         switch (type) {
             case FIELD_TYPES.INPUT:
                 return (React__default.createElement(Form.Item, __assign({}, formItemProps),
-                    React__default.createElement(Input, { placeholder: placeholder })));
+                    React__default.createElement(Input, { placeholder: placeholder, style: { width: '100%' } })));
             case FIELD_TYPES.TEXTAREA:
                 return (React__default.createElement(Form.Item, __assign({}, formItemProps),
-                    React__default.createElement(TextArea, { placeholder: placeholder, rows: 4 })));
+                    React__default.createElement(TextArea, { placeholder: placeholder, rows: 4, style: { width: '100%' } })));
             case FIELD_TYPES.CHECKBOX:
                 return (React__default.createElement(Form.Item, __assign({}, formItemProps),
-                    React__default.createElement(Checkbox.Group, { options: options })));
+                    React__default.createElement(Checkbox.Group, { options: options, style: { width: '100%' } })));
             case FIELD_TYPES.RADIO:
                 return (React__default.createElement(Form.Item, __assign({}, formItemProps),
-                    React__default.createElement(Radio.Group, null, options.map(function (option, index) { return (React__default.createElement(Radio, { key: index, value: option }, option)); }))));
+                    React__default.createElement(Radio.Group, { style: { width: '100%' } }, options.map(function (option, index) { return (React__default.createElement(Radio, { key: index, value: option }, option)); }))));
             case FIELD_TYPES.NUMBER:
                 return (React__default.createElement(Form.Item, __assign({}, formItemProps),
-                    React__default.createElement(InputNumber, { min: minValue, max: maxValue, placeholder: placeholder })));
+                    React__default.createElement(InputNumber, { min: minValue, max: maxValue, placeholder: placeholder, style: { width: '100%' } })));
             case FIELD_TYPES.SELECT:
                 return (React__default.createElement(Form.Item, __assign({}, formItemProps),
-                    React__default.createElement(Select, { placeholder: placeholder }, options.map(function (option, index) { return (React__default.createElement(Option, { key: index, value: option }, option)); }))));
+                    React__default.createElement(Select, { placeholder: placeholder, showSearch: true, optionFilterProp: "children", filterOption: function (input, option) {
+                            return (option === null || option === void 0 ? void 0 : option.children).toLowerCase().indexOf(input.toLowerCase()) !== -1;
+                        }, style: { width: '100%' } }, options.map(function (option, index) { return (React__default.createElement(Option, { key: index, value: option }, option)); }))));
             default:
                 return null;
         }
@@ -1767,24 +1773,23 @@ var FormGenerator = function (_a) {
                     React__default.createElement(Input, { value: option, onChange: function (e) { return handleOptionTextChange(index, e.target.value); }, style: { marginRight: '8px' } }),
                     React__default.createElement(Button, { danger: true, icon: React__default.createElement(RefIcon$3, null), onClick: function () { return handleRemoveOption(index); }, disabled: currentField.options.length <= 1 }))); })))))); };
     // If in preview mode, render the form with the configured fields
-    if (isPreview) {
-        return (React__default.createElement(Card, { title: "Form Preview" },
-            React__default.createElement(Form, { form: previewForm, layout: "vertical", onFinish: handlePreviewSubmit },
-                fields.map(function (field) { return (React__default.createElement("div", { key: field.id }, renderPreviewField(field))); }),
+    if (showPreview) {
+        return (React__default.createElement(Card, { title: "Form Preview", extra: localPreview ? (React__default.createElement(Button, { onClick: function () { return setLocalPreview(false); } }, "Back to Editor")) : null },
+            React__default.createElement(Form, { form: previewForm, layout: "vertical", onFinish: handlePreviewSubmit, style: { width: '100%' } }, fields.length > 0 ? (React__default.createElement(React__default.Fragment, null,
+                fields.map(function (field) { return (React__default.createElement("div", { key: field.id, style: { width: '100%' } }, renderPreviewField(field))); }),
                 React__default.createElement(Form.Item, null,
-                    React__default.createElement(Button, { type: "primary", htmlType: "submit" }, "Submit")))));
+                    React__default.createElement(Button, { type: "primary", htmlType: "submit" }, "Submit")))) : (React__default.createElement("div", { style: { textAlign: 'center', padding: '20px', background: '#f5f5f5', borderRadius: '4px' } }, "No fields have been added to this form yet.")))));
     }
     // Otherwise, render the form builder
     return (React__default.createElement("div", null,
-        React__default.createElement(Button, { type: "primary", icon: React__default.createElement(RefIcon, null), onClick: function () {
-                setIsModalVisible(true);
-                setIsEditing(false);
-                form.resetFields();
-                setCurrentField(getInitialField());
-            }, style: { marginBottom: 16 } }, "Add Form Field"),
-        React__default.createElement(Button, { icon: React__default.createElement(RefIcon$1, null), style: { marginLeft: 8, marginBottom: 16 }, onClick: function () {
-                // You can implement a preview toggle here if needed
-            } }, "Preview Form"),
+        React__default.createElement(Space, { style: { marginBottom: 16 } },
+            React__default.createElement(Button, { type: "primary", icon: React__default.createElement(RefIcon, null), onClick: function () {
+                    setIsModalVisible(true);
+                    setIsEditing(false);
+                    form.resetFields();
+                    setCurrentField(getInitialField());
+                } }, "Add Form Field"),
+            React__default.createElement(Button, { icon: React__default.createElement(RefIcon$1, null), onClick: function () { return setLocalPreview(true); }, disabled: fields.length === 0 }, "Preview Form")),
         fields.length > 0 ? (React__default.createElement("div", null, fields.map(function (field, index) { return (React__default.createElement(Card, { key: field.id, style: { marginBottom: 16 }, title: "".concat(index + 1, ". ").concat(field.label, " (").concat(field.type, ")"), extra: React__default.createElement(Space, null,
                 React__default.createElement(Tooltip, { title: "Move Up" },
                     React__default.createElement(Button, { icon: React__default.createElement(RefIcon$4, null), disabled: index === 0, onClick: function () { return handleMoveUp(index); } })),
@@ -1825,5 +1830,5 @@ var FormGenerator = function (_a) {
         renderFieldModal()));
 };
 
-export { FormGenerator as Form, TextAreaWithSaveCancel };
+export { AntdElementsForm, TextAreaWithSaveCancel };
 //# sourceMappingURL=index.esm.js.map

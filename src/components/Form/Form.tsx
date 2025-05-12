@@ -36,7 +36,7 @@ interface FormGeneratorProps {
   onSubmitPreview?: (values: any) => void;
 }
 
-const FormGenerator: React.FC<FormGeneratorProps> = ({
+const AntdElementsForm: React.FC<FormGeneratorProps> = ({
   value = [],
   onChange,
   isPreview = false,
@@ -48,6 +48,10 @@ const FormGenerator: React.FC<FormGeneratorProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [form] = Form.useForm();
   const [previewForm] = Form.useForm();
+  const [localPreview, setLocalPreview] = useState(false);
+
+  // Display either the passed isPreview prop or local preview state
+  const showPreview = isPreview || localPreview;
 
   // Update fields and trigger onChange
   const updateFields = (newFields: any[]) => {
@@ -148,31 +152,32 @@ const FormGenerator: React.FC<FormGeneratorProps> = ({
       name: field.id,
       required,
       tooltip: instructions || undefined,
+      style: { width: '100%' },
     };
 
     switch (type) {
       case FIELD_TYPES.INPUT:
         return (
           <Form.Item {...formItemProps}>
-            <Input placeholder={placeholder} />
+            <Input placeholder={placeholder} style={{ width: '100%' }} />
           </Form.Item>
         );
       case FIELD_TYPES.TEXTAREA:
         return (
           <Form.Item {...formItemProps}>
-            <TextArea placeholder={placeholder} rows={4} />
+            <TextArea placeholder={placeholder} rows={4} style={{ width: '100%' }} />
           </Form.Item>
         );
       case FIELD_TYPES.CHECKBOX:
         return (
           <Form.Item {...formItemProps}>
-            <Checkbox.Group options={options} />
+            <Checkbox.Group options={options} style={{ width: '100%' }} />
           </Form.Item>
         );
       case FIELD_TYPES.RADIO:
         return (
           <Form.Item {...formItemProps}>
-            <Radio.Group>
+            <Radio.Group style={{ width: '100%' }}>
               {options.map((option: string, index: number) => (
                 <Radio key={index} value={option}>{option}</Radio>
               ))}
@@ -182,13 +187,26 @@ const FormGenerator: React.FC<FormGeneratorProps> = ({
       case FIELD_TYPES.NUMBER:
         return (
           <Form.Item {...formItemProps}>
-            <InputNumber min={minValue} max={maxValue} placeholder={placeholder} />
+            <InputNumber 
+              min={minValue} 
+              max={maxValue} 
+              placeholder={placeholder} 
+              style={{ width: '100%' }} 
+            />
           </Form.Item>
         );
       case FIELD_TYPES.SELECT:
         return (
           <Form.Item {...formItemProps}>
-            <Select placeholder={placeholder}>
+            <Select 
+              placeholder={placeholder} 
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                (option?.children as unknown as string).toLowerCase().indexOf(input.toLowerCase()) !== -1
+              }
+              style={{ width: '100%' }}
+            >
               {options.map((option: string, index: number) => (
                 <Option key={index} value={option}>{option}</Option>
               ))}
@@ -321,24 +339,42 @@ const FormGenerator: React.FC<FormGeneratorProps> = ({
   );
 
   // If in preview mode, render the form with the configured fields
-  if (isPreview) {
+  if (showPreview) {
     return (
-      <Card title="Form Preview">
+      <Card 
+        title="Form Preview" 
+        extra={
+          localPreview ? (
+            <Button onClick={() => setLocalPreview(false)}>
+              Back to Editor
+            </Button>
+          ) : null
+        }
+      >
         <Form
           form={previewForm}
           layout="vertical"
           onFinish={handlePreviewSubmit}
+          style={{ width: '100%' }}
         >
-          {fields.map((field) => (
-            <div key={field.id}>
-              {renderPreviewField(field)}
+          {fields.length > 0 ? (
+            <>
+              {fields.map((field) => (
+                <div key={field.id} style={{ width: '100%' }}>
+                  {renderPreviewField(field)}
+                </div>
+              ))}
+              <Form.Item>
+                <Button type="primary" htmlType="submit">
+                  Submit
+                </Button>
+              </Form.Item>
+            </>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '20px', background: '#f5f5f5', borderRadius: '4px' }}>
+              No fields have been added to this form yet.
             </div>
-          ))}
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Submit
-            </Button>
-          </Form.Item>
+          )}
         </Form>
       </Card>
     );
@@ -347,29 +383,28 @@ const FormGenerator: React.FC<FormGeneratorProps> = ({
   // Otherwise, render the form builder
   return (
     <div>
-      <Button 
-        type="primary" 
-        icon={<PlusOutlined />} 
-        onClick={() => {
-          setIsModalVisible(true);
-          setIsEditing(false);
-          form.resetFields();
-          setCurrentField(getInitialField());
-        }}
-        style={{ marginBottom: 16 }}
-      >
-        Add Form Field
-      </Button>
-      
-      <Button 
-        icon={<EyeOutlined />} 
-        style={{ marginLeft: 8, marginBottom: 16 }}
-        onClick={() => {
-          // You can implement a preview toggle here if needed
-        }}
-      >
-        Preview Form
-      </Button>
+      <Space style={{ marginBottom: 16 }}>
+        <Button 
+          type="primary" 
+          icon={<PlusOutlined />} 
+          onClick={() => {
+            setIsModalVisible(true);
+            setIsEditing(false);
+            form.resetFields();
+            setCurrentField(getInitialField());
+          }}
+        >
+          Add Form Field
+        </Button>
+        
+        <Button 
+          icon={<EyeOutlined />} 
+          onClick={() => setLocalPreview(true)}
+          disabled={fields.length === 0}
+        >
+          Preview Form
+        </Button>
+      </Space>
 
       {fields.length > 0 ? (
         <div>
@@ -445,6 +480,6 @@ const FormGenerator: React.FC<FormGeneratorProps> = ({
   );
 };
 
-export default FormGenerator;
+export default AntdElementsForm;
 
 

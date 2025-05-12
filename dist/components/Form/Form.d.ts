@@ -5,5 +5,5 @@ interface FormGeneratorProps {
     isPreview?: boolean;
     onSubmitPreview?: (values: any) => void;
 }
-declare const FormGenerator: React.FC<FormGeneratorProps>;
-export default FormGenerator;
+declare const AntdElementsForm: React.FC<FormGeneratorProps>;
+export default AntdElementsForm;
